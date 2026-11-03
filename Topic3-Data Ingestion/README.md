@@ -120,7 +120,6 @@ The proposed architecture integrates three data sources and delivers prepared da
 
 | Stage | Responsibility |
 |---|---|
-
 | Ingestion | Collect data from SFTP, REST API, and Kafka |
 | Raw Storage | Preserve original source data in the Data Lake |
 | Validation | Check schema, required fields, data types, and duplicates |
