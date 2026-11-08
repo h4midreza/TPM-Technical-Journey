@@ -40,6 +40,22 @@ In this architecture, each service has a specific responsibility and can be deve
 
 **Note:** A timeout does not necessarily mean that an operation failed. The operation may have completed successfully, but its response did not reach the sender. Retrying without Idempotency can therefore result in duplicate processing.
 
+## Distributed Systems Tools
+
+| Category | Tool | Main Purpose | Practical Use Case |
+|---|---|---|---|
+| Container Orchestration | Kubernetes | Deploying, scaling, and managing containerized applications across multiple nodes | Running multiple instances of DMS services |
+| Load Balancing | NGINX | Distributing incoming requests across multiple servers | Distributing file upload requests across Ingestion Servers |
+| Load Balancing | HAProxy | High-performance traffic distribution and health checking | Routing requests only to healthy application servers |
+| Message Broker / Event Streaming | Apache Kafka | Distributed event streaming and asynchronous communication between services | Publishing document upload and processing events |
+| Message Broker | RabbitMQ | Message queuing and asynchronous task distribution | Distributing document processing tasks among workers |
+| Distributed Coordination | etcd | Distributed key-value storage and coordination | Maintaining Kubernetes cluster state |
+| Distributed Coordination | Apache ZooKeeper | Coordination and synchronization between distributed nodes | Managing coordination in legacy distributed systems |
+| Distributed Storage | MinIO | S3-compatible distributed object storage | Storing uploaded documents across multiple storage nodes |
+| Distributed Storage | Ceph | Distributed object, block, and file storage | Providing scalable and fault-tolerant storage infrastructure |
+| Monitoring | Prometheus | Collecting and storing system metrics | Monitoring CPU, memory, request rates, and service health |
+| Monitoring & Visualization | Grafana | Visualizing metrics and operational dashboards | Monitoring service availability, latency, and resource utilization |
+
 ## 3. Message Brokers and Event Streaming
 
 ### What is a Message Broker?
