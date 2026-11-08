@@ -207,10 +207,39 @@ Apache NiFi is a tool for designing, managing, and executing data flows. It prov
 |---|---|
 | Processor | Performs a specific operation, such as receiving, transforming, or sending data |
 | Connection / Queue | Connects Processors and temporarily stores FlowFiles |
-| FlowFile | The unit of data managed by NiFi |
+| FlowFile | The unit of data managed by NiFi, consisting of Content and Attributes |
 | Attributes | Metadata such as filename, document ID, and ingestion timestamp |
 | Content | The actual file or data content |
-| Provenance | Records the processing history and path of a FlowFile |
+| Process Group | Groups related Processors and organizes data flows |
+| Controller Service | Provides shared services, such as database connections and SSL configuration |
+| FlowFile Repository | Stores FlowFile metadata and processing state |
+| Content Repository | Stores the actual content of FlowFiles |
+| Provenance Repository | Records the processing history and path of a FlowFile |
+
+### Important NiFi Processors
+
+| Processor | Main Purpose | Typical Use Case |
+|---|---|---|
+| GetFile | Reads files from a local directory | Local file ingestion |
+| ListSFTP | Lists files available on an SFTP server | Detecting new files |
+| FetchSFTP | Downloads a specific file from an SFTP server | Fetching files identified by ListSFTP |
+| GetSFTP | Downloads files directly from an SFTP server | Simple SFTP ingestion |
+| ListenHTTP | Receives incoming HTTP requests | Receiving data from external applications |
+| InvokeHTTP | Sends HTTP requests to external APIs | REST API integration |
+| QueryDatabaseTable | Extracts records from database tables and can track changes using a configured maximum-value column | Incremental database extraction |
+| ExecuteSQL | Executes SQL queries against a database | Custom data extraction |
+| ConsumeKafka | Reads messages from Kafka topics | Kafka message consumption |
+| PublishKafka | Publishes messages to Kafka topics | Event publishing |
+| UpdateAttribute | Adds or updates FlowFile attributes | Metadata management |
+| RouteOnAttribute | Routes FlowFiles based on their attributes | Conditional routing |
+| RouteOnContent | Routes FlowFiles based on their content | Content-based routing |
+| ValidateRecord | Validates records against a configured schema | Data validation |
+| PutDatabaseRecord | Writes records into a database | Storing document metadata in PostgreSQL |
+| PutSQL | Executes SQL statements against a database | Database updates |
+| PutS3Object | Uploads FlowFile content to S3-compatible object storage | Storing files in MinIO |
+| LogAttribute | Logs FlowFile attributes | Debugging and monitoring |
+
+*Note: Processor availability and exact behavior depend on the NiFi version and installed extensions.*
 
 ### DMS Use Case
 
@@ -501,51 +530,3 @@ Increasing the number of Consumers is not always the solution. The actual bottle
 - Back Pressure: Controlling queue growth when downstream processing slows down.
 - Provenance: Tracking the processing history of data.
 - Reconciliation: Comparing the state of different components to identify missing or inconsistent data.
-
-## 14. TPM Technical Checklist
-
-During technical meetings and project follow-ups, the following areas should be monitored.
-
-### Architecture and Dependencies
-
-- What is the responsibility of each tool?
-- What are the dependencies between NiFi, Kafka, Object Storage, and Database?
-- Can a failure in one component stop the entire data flow?
-- Are services designed to operate and recover independently?
-
-### Capacity and Performance
-
-- What is the incoming file and message rate?
-- What is the Throughput of each component?
-- Within what range is Consumer Lag?
-- How much free storage capacity remains?
-- What is the daily data growth rate and future storage requirement?
-
-### Reliability and Recovery
-
-- What is the Retry policy?
-- Is duplicate processing controlled?
-- Are DLQ and Replay mechanisms available?
-- What happens if a Node fails?
-- What are the expected RPO and RTO?
-- Is an independent Backup available?
-
-### Monitoring
-
-- How is Kafka Cluster health monitored?
-- How is Consumer Lag tracked?
-- What is the status of NiFi queues?
-- How are MinIO Node health and storage capacity monitored?
-- Are alerts configured for failures and critical thresholds?
-
-### Reporting to Management
-
-Status reports should clearly communicate:
-
-- What is the problem or risk?
-- Which components are affected?
-- What is the potential impact on data, services, or delivery timelines?
-- Has the root cause been identified, or is the investigation still ongoing?
-- Who is responsible for follow-up?
-- What is the estimated recovery time?
-- Are there alternative solutions or mitigation measures?
