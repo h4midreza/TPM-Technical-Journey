@@ -353,6 +353,8 @@ Important components:
 - Pool: A logical storage area with associated data placement and protection policies.
 - Placement Group: An internal structure used to distribute and manage data across the cluster.
 
+<img width="1059" height="605" alt="image" src="https://github.com/user-attachments/assets/587efd09-54a2-40fc-93e9-50d91b458a77" />
+
 ### MinIO vs. Ceph
 
 | Criteria | MinIO | Ceph |
