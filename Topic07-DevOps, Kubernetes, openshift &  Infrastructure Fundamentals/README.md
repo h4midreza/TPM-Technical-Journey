@@ -330,6 +330,8 @@ A Kubernetes Service provides a stable network endpoint for a group of Pods sele
 | NodePort | Exposes a Service through a port on cluster Nodes |
 | LoadBalancer | Exposes a Service through an external load balancer when supported |
 
+<img width="1558" height="846" alt="image" src="https://github.com/user-attachments/assets/81a3f250-e556-4fbe-b8d4-c8a231a145ac" />
+
 ### Service Discovery
 
 Kubernetes provides DNS-based service discovery.
