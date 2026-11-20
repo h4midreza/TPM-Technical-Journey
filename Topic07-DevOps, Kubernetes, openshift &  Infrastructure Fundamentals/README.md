@@ -242,19 +242,6 @@ Kubernetes is a container orchestration platform that automates application depl
 
 It manages a group of machines called a Cluster and continuously works to maintain the desired state of deployed applications.
 
-### OpenShift
-
-OpenShift is an enterprise application platform built on Kubernetes.
-
-It provides additional capabilities such as:
-
-- Web Console and developer tools
-- Integrated security and access controls
-- Routes for external application access
-- Operators for managing platform services
-
-OpenShift uses Kubernetes concepts such as Pods, Deployments, Services, and Namespaces.
-
 ### Kubernetes Architecture
 
 A Kubernetes Cluster has two main parts:
@@ -279,6 +266,20 @@ Run application workloads.
 | Kubelet | Manages Pods on the Node |
 | Container Runtime | Runs containers |
 | Network Components | Enable communication between workloads |
+
+### OpenShift
+
+OpenShift is an enterprise application platform built on Kubernetes.
+
+It provides additional capabilities such as:
+
+- Web Console and developer tools
+- Integrated security and access controls
+- Routes for external application access
+- Operators for managing platform services
+
+OpenShift uses Kubernetes concepts such as Pods, Deployments, Services, and Namespaces.
+
 
 ## 8. Cluster, Node, Pod, Deployment, and Namespace
 
