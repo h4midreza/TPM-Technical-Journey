@@ -242,6 +242,8 @@ Kubernetes is a container orchestration platform that automates application depl
 
 It manages a group of machines called a Cluster and continuously works to maintain the desired state of deployed applications.
 
+<img width="1400" height="933" alt="image" src="https://github.com/user-attachments/assets/32020847-63c1-4740-95d1-4ff53e587f48" />
+
 ### Kubernetes Architecture
 
 A Kubernetes Cluster has two main parts:
