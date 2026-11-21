@@ -1,718 +1,845 @@
 # Topic 9: Technical Program Management & Cross-Team Coordination
 
-## 1. Objective
+## 1. Objective & Practical Scenario
 
-Understand how to coordinate technical work across Data Engineering, DevOps, Database, Network, Security, and Consumer teams while managing dependencies, risks, and delivery commitments.
+### Objective
 
-This topic focuses on technical program management, dependency mapping, work breakdown, delivery planning, risk management, technical decision-making, ownership, and cross-team coordination.
+The objective of this topic is to understand how a Technical Program Manager (TPM) coordinates complex technical projects involving multiple engineering teams, infrastructure dependencies, and interconnected deliverables.
 
-The goal is to understand how to organize and coordinate complex technical initiatives, identify delivery constraints, manage uncertainty, and communicate progress and risks from a Technical Program Manager (TPM) perspective.
+The TPM maintains an end-to-end view of technical delivery, coordinates dependencies and decisions, manages risks, and ensures that individual team outputs become an integrated solution.
 
-## 2. Practical Scenario: Data Platform Delivery
+### Practical Scenario: DMS Delivery
 
-Assume a Data Platform project requires several teams to deliver an end-to-end data pipeline.
+Throughout this topic, we use a Document Management System (DMS) as the main scenario.
 
-The target architecture includes:
+The platform receives documents from external systems, validates them, stores document files and metadata, and makes them available for downstream services and reporting.
 
-- Source Systems: Provide operational data.
-- Network: Provides secure connectivity between systems.
-- Storage: Provides infrastructure for storing raw and processed data.
-- NiFi: Handles data ingestion and routing.
-- Kafka: Transfers events between services.
-- Document Processor: Validates and processes incoming data.
-- ClickHouse: Stores analytical data.
-- Monitoring Platform: Monitors infrastructure, applications, and data pipelines.
-- Consumer Teams: Access and use the processed data.
+**High-Level Architecture**
 
-Several teams must coordinate their work.
+```text
+External Systems
+       |
+       v
+      SFTP
+       |
+       v
+      NiFi
+       |
+       v
+     MinIO
+       |
+       v
+     Kafka
+       |
+       v
+Document Processor
+       |
+       +------> PostgreSQL (Metadata)
+       |
+       v
+   Data Warehouse
+       |
+       v
+       BI
+```
+
+The project involves several technical teams:
 
 | Team | Main Responsibility |
 |---|---|
-| Data Engineering | Ingestion, processing, and data integration |
-| DevOps / Platform | Kubernetes, deployment, and infrastructure |
-| Database | PostgreSQL and ClickHouse configuration |
-| Network | Connectivity, routing, firewall, and DNS |
-| Security | Access control, certificates, and security approval |
-| Consumer Teams | Data access, integration, and validation |
+| Development | Metadata API and Document Processor |
+| Data Engineering | NiFi flows, Kafka integration and data processing |
+| Database | PostgreSQL schema, performance and backup |
+| Platform / Infrastructure | Kubernetes, storage, networking and deployment |
+| Network / Security | Network access, firewall rules and security requirements |
 
-A delay in one team's deliverable can affect other teams and the overall delivery timeline.
+The TPM coordinates these teams to ensure that their deliverables work together as one production-ready platform.
 
-The TPM coordinates dependencies, milestones, risks, responsibilities, and delivery commitments across these teams.
+The architecture and team ownership are illustrative and may vary depending on the actual project.
 
-## 3. Technical Program Management Fundamentals
+## 2. TPM Fundamentals & Cross-Team Coordination
 
-Technical Program Management (TPM) focuses on coordinating complex technical initiatives involving multiple teams, systems, and dependencies.
+A Technical Program Manager coordinates technical delivery across teams. The role focuses on dependencies, delivery progress, risks, decisions, and integration rather than implementing individual components.
 
-Unlike managing a single team's tasks, TPM requires understanding how different technical workstreams depend on one another.
+### TPM vs. Project Manager vs. Tech Lead
 
-### Core Responsibilities
+| Role | Primary Focus |
+|---|---|
+| TPM | Technical dependencies, cross-team coordination, integration and delivery |
+| Project Manager | Overall project planning, resources, schedule and coordination |
+| Tech Lead | Technical design and engineering execution within a team |
 
-- **Planning:** Define scope, milestones, and delivery expectations.
-- **Coordination:** Align teams and manage cross-team dependencies.
-- **Dependency Management:** Identify work that depends on external teams or infrastructure.
-- **Risk Management:** Identify and track potential delivery risks.
-- **Decision Management:** Ensure technical decisions are documented and communicated.
-- **Progress Tracking:** Monitor milestones, blockers, and delivery commitments.
-- **Escalation:** Raise issues that cannot be resolved at the working-team level.
+These responsibilities may overlap depending on the organization's structure.
 
-### Example
+### Practical Example
 
-The Data Engineering team cannot start NiFi integration because Network has not provided access to the source system.
+The Development team is implementing the Document Processor, but Kafka integration requires:
 
-The TPM should:
+- Data Engineering to define the event structure.
+- Platform to prepare Kafka topics and access.
+- Database to provide the required metadata schema.
 
-1. Identify the missing network access as a dependency.
-2. Confirm the responsible Network team and required access details.
-3. Understand the impact on the ingestion schedule.
-4. Coordinate a committed delivery date.
-5. Identify alternative work that can proceed in parallel.
-6. Escalate if the delay threatens a critical milestone.
+Each team owns its technical work, while the TPM coordinates dependencies and ensures that the integration can be completed.
 
-The TPM does not necessarily configure the firewall but must ensure that the dependency is resolved or its impact is managed.
+### Responsibility Management: RACI
 
-## 4. Technical Dependency Mapping
+RACI clarifies who performs, owns, contributes to, or receives information about an activity.
 
-A dependency is a relationship where one task, component, or deliverable requires another to be completed or available.
+| Role | Meaning |
+|---|---|
+| R - Responsible | Performs the work |
+| A - Accountable | Owns the outcome and approves completion |
+| C - Consulted | Provides input or expertise |
+| I - Informed | Receives updates |
 
-Dependency Mapping makes these relationships visible.
+Example:
 
-### Types of Dependencies
+| Activity | Development | Data Engineering | Platform | TPM |
+|---|---|---|---|---|
+| Define event schema | A | R | C | I |
+| Create Kafka topics | C | C | R/A | I |
+| Implement consumer | R/A | C | I | I |
+| Coordinate integration | R | R | R | A |
 
-- **Technical Dependency:** One technical component requires another component.
-- **Team Dependency:** One team's work depends on another team's deliverable.
-- **Infrastructure Dependency:** Application deployment requires infrastructure readiness.
-- **External Dependency:** A third-party provider or external system must provide something.
-- **Data Dependency:** A downstream process requires data from an upstream source.
+This is an illustrative allocation. Actual accountability should follow the organization's ownership model. Each activity should have clear accountability.
 
-### Example Dependency Map
+**TPM responsibilities:**
 
-```text
-Source System Access
-        |
-        v
-Network Connectivity
-        |
-        v
-NiFi Ingestion
-        |
-        v
-Kafka Integration
-        |
-        v
-Document Processing
-        |
-        v
-ClickHouse Integration
-        |
-        v
-Data Validation
-        |
-        v
-Consumer Integration
-```
+- Clarify team responsibilities and ownership.
+- Identify missing or overlapping responsibilities.
+- Coordinate cross-team activities.
+- Ensure that dependencies and decisions have owners.
+- Maintain visibility of overall technical delivery.
 
-Additional dependencies:
+## 3. Project Planning & Technical Dependencies
+
+Project planning starts by breaking down the overall scope into manageable activities and identifying the relationships between them.
+
+### Work Breakdown Structure (WBS)
+
+WBS divides a large project into smaller work packages that can be assigned, estimated, and tracked.
+
+Example: DMS project
 
 ```text
-Security Approval ----+
-                      |
-Storage Provisioning -+--> Data Platform Deployment
-                      |
-Kubernetes Readiness -+
-                      |
-Monitoring Setup -----+
+1. Requirements and Architecture
+   1.1 Define requirements
+   1.2 Design system architecture
+   1.3 Define integration contracts
+
+2. Infrastructure
+   2.1 Prepare Kubernetes resources
+   2.2 Configure Kafka
+   2.3 Prepare MinIO storage
+   2.4 Configure network access
+
+3. Data Ingestion
+   3.1 Configure SFTP connectivity
+   3.2 Implement NiFi flows
+   3.3 Implement validation rules
+
+4. Application Development
+   4.1 Implement Metadata API
+   4.2 Implement Document Processor
+   4.3 Integrate Kafka and MinIO
+
+5. Database
+   5.1 Design metadata schema
+   5.2 Implement database objects
+   5.3 Validate query performance
+
+6. Integration and Testing
+   6.1 Component testing
+   6.2 Integration testing
+   6.3 End-to-end testing
+   6.4 Performance testing
+
+7. Production Readiness
+   7.1 Configure monitoring
+   7.2 Validate security
+   7.3 Prepare deployment and rollback
+   7.4 Production release
 ```
 
-### Dependency Management
+A work package should have a clear scope, owner, expected output, dependencies, estimate, and acceptance criteria.
 
-For each dependency, identify:
+### Technical Dependency Mapping
 
-- Required deliverable.
-- Responsible team.
-- Team or component waiting for it.
-- Expected completion date.
-- Current status.
-- Impact if delayed.
+Dependencies describe relationships between tasks, teams, components, or external requirements.
 
-A dependency map helps identify bottlenecks and understand how a delay in one component can affect downstream work.
+Common types include:
 
-## 5. Work Breakdown Structure (WBS)
+- **Technical:** Document Processor requires Kafka topics and an agreed event schema.
+- **Team:** Development needs the database schema before completing metadata persistence.
+- **Infrastructure:** The application requires Kubernetes resources and network connectivity.
+- **External:** DMS requires an SFTP endpoint from an external document provider.
 
-A Work Breakdown Structure decomposes a large project into smaller, manageable work packages.
+Example:
 
-It helps teams understand the scope of work and organize delivery.
-
-### Example: Data Platform WBS
-
-| WBS ID | Work Package | Responsible Team |
+| Activity | Dependency | Owner |
 |---|---|---|
-| 1.0 | Infrastructure Preparation | DevOps |
-| 1.1 | Kubernetes Cluster Readiness | DevOps |
-| 1.2 | Storage Provisioning | Storage |
-| 1.3 | Network Connectivity | Network |
-| 2.0 | Data Ingestion | Data Engineering |
-| 2.1 | Source Integration | Data Engineering |
-| 2.2 | NiFi Configuration | Data Engineering |
-| 3.0 | Data Processing | Data Engineering |
-| 3.1 | Kafka Integration | Data Engineering |
-| 3.2 | Document Processing | Data Engineering |
-| 4.0 | Analytical Storage | Database |
-| 4.1 | ClickHouse Deployment | Database / DevOps |
-| 4.2 | Data Integration | Data Engineering |
-| 5.0 | Monitoring | DevOps / Data Engineering |
-| 5.1 | Infrastructure Monitoring | DevOps |
-| 5.2 | Pipeline Monitoring | Data Engineering |
-| 6.0 | Integration and Acceptance Testing | All Relevant Teams |
+| Define Kafka event contract | Architecture agreement | Development + Data Engineering |
+| Create Kafka topics | Topic and access requirements | Platform |
+| Prepare database schema | Metadata requirements | Database |
+| Implement Document Processor | Event contract and API requirements | Development |
+| Configure NiFi ingestion | SFTP access and validation rules | Data Engineering |
+| Deploy services | Infrastructure readiness | Platform |
 
-### Work Package Characteristics
+### Deliverables, Milestones & Acceptance Criteria
 
-A good work package should have:
+These concepts are related but serve different purposes.
 
-- Clear scope.
-- Defined owner.
-- Expected deliverable.
-- Acceptance criteria.
-- Estimated effort or duration.
-- Identified dependencies.
+- **Deliverable:** A specific output produced by a team.
+- **Milestone:** An important point in the project that represents meaningful progress or completion.
+- **Acceptance Criteria:** Conditions that must be satisfied before a deliverable is accepted.
 
-WBS helps define what needs to be delivered before assigning dates and tracking progress.
+Example:
 
-## 6. Deliverables, Milestones, and Acceptance Criteria
+| Deliverable | Acceptance Criteria | Milestone |
+|---|---|---|
+| Kafka environment | Topics, ACLs and connectivity verified | Infrastructure Ready |
+| Metadata API | Required endpoints implemented and tested | Development Completed |
+| NiFi pipeline | Documents received and validated successfully | Ingestion Ready |
+| Document Processor | Documents processed and metadata persisted correctly | Processing Ready |
+| Integrated DMS | End-to-end workflow passes agreed tests | Integration Completed |
 
-These concepts are related but have different purposes.
+A task should not be considered complete merely because implementation has finished. Completion should be evaluated against agreed acceptance criteria.
 
-### Deliverable
+**TPM responsibilities:**
 
-A specific output produced by a task or work package.
+- Break down project scope into manageable work packages.
+- Identify dependencies between teams and components.
+- Assign owners and expected delivery dates.
+- Define measurable milestones and acceptance criteria.
+- Track dependencies before they become blockers.
 
-Examples:
+## 4. Scheduling & Delivery Management
 
-- Kubernetes Cluster ready.
-- NiFi ingestion flow configured.
-- ClickHouse database deployed.
-- Monitoring dashboard available.
-- Data integration completed.
+Once activities and dependencies are identified, the TPM needs to understand how they affect the overall delivery timeline.
 
-### Milestone
+### Critical Path & Parallel Work
 
-A significant point in the project that represents the completion of an important stage or achievement.
+The Critical Path is the longest sequence of dependent activities that determines the minimum possible project duration.
 
-Examples:
+A delay in a critical-path activity can directly delay the overall project.
 
-- Infrastructure Ready.
-- First Successful Data Ingestion.
-- End-to-End Pipeline Operational.
-- User Acceptance Testing Completed.
-- Production Go-Live.
-
-### Acceptance Criteria
-
-Conditions that must be satisfied before a deliverable can be accepted as complete.
-
-Example: NiFi Ingestion Acceptance Criteria:
-
-- Source connectivity is established.
-- Required records can be ingested.
-- Data validation rules are applied.
-- Failed records are handled correctly.
-- Ingestion metrics are available.
-- Integration tests pass.
-
-A task being marked as completed does not automatically mean its deliverable meets the acceptance criteria.
-
-## 7. Critical Path and Parallel Work
-
-### Critical Path
-
-The Critical Path is the longest sequence of dependent activities that determines the earliest possible project completion date.
-
-Tasks on the critical path generally have zero scheduling float. A delay in one of these tasks can delay the overall delivery date.
-
-### Example
+Example:
 
 ```text
-Source Access (3 days)
+Architecture Approval
         |
         v
-Network Setup (2 days)
+Infrastructure Preparation
         |
         v
-NiFi Integration (4 days)
+Kafka and Storage Ready
         |
         v
-Kafka Integration (3 days)
+Application Integration
         |
         v
-Document Processing (5 days)
+End-to-End Testing
         |
         v
-ClickHouse Integration (3 days)
-        |
-        v
-End-to-End Testing (4 days)
+Production Release
 ```
 
-In this simplified sequence, all tasks depend on the completion of the previous task.
+Some activities can run in parallel:
 
-### Parallel Work
+```text
+             Architecture Approval
+                       |
+          +------------+------------+
+          |            |            |
+          v            v            v
+      Database    Infrastructure  Data Contract
+       Design      Preparation    Definition
+          |            |            |
+          +------------+------------+
+                       |
+                       v
+                  Integration
+                       |
+                       v
+                 End-to-End Test
+                       |
+                       v
+                Production Release
+```
 
-Not every activity needs to wait for another activity.
+The actual critical path depends on task durations and dependency relationships.
 
-For example, the following work may happen in parallel:
+**Key concepts:**
 
-- Kubernetes Cluster preparation.
-- Security review.
-- Source data analysis.
-- Monitoring architecture design.
-- ClickHouse schema design.
+- **Critical Path:** Activities that determine the earliest possible project completion.
+- **Float (Slack):** How long an activity can be delayed without delaying the overall project.
+- **Parallel Execution:** Performing independent activities simultaneously to reduce total delivery time.
 
-Parallel execution can reduce the overall delivery time, provided that dependencies and resource constraints are respected.
+### Technical Estimation
 
-### TPM Considerations
+Technical estimation predicts the effort or duration required to complete a task.
 
-- Identify the critical path.
-- Identify tasks that can run in parallel.
-- Track tasks with limited scheduling flexibility.
-- Monitor dependencies that could delay critical milestones.
-- Recalculate the delivery plan when important assumptions change.
+Two important concepts:
 
-## 8. Risk, Issue, Blocker, and Assumption
+- **Effort:** Amount of work, usually measured in person-hours or person-days.
+- **Duration:** Calendar time required to complete the work.
 
-These terms describe different project conditions and should not be treated as interchangeable.
+For example, a task may require 10 person-days of effort, but its duration may be shorter if multiple engineers work on it in parallel. However, dependencies and coordination overhead can limit this reduction.
 
-### Risk
+Common estimation methods:
 
-An uncertain event that may affect project delivery in the future.
+- **Expert Judgment:** Estimate based on engineering experience.
+- **Analogous Estimation:** Use a similar completed task as a reference.
+- **Three-Point Estimation:** Use optimistic, most likely, and pessimistic estimates.
 
-Example: Network connectivity may not be approved before the planned integration date.
+A common weighted estimate is:
 
-### Issue
+\[
+E = \frac{O + 4M + P}{6}
+\]
 
-A problem that has already occurred and requires action.
+Example: Kafka integration
 
-Example: The Kubernetes Cluster is unavailable because of a failed infrastructure deployment.
+- Optimistic: 3 days
+- Most likely: 5 days
+- Pessimistic: 9 days
 
-### Blocker
+\[
+E = \frac{3 + 4(5) + 9}{6} = 5.33
+\]
 
-A condition that prevents a task or team from making progress.
+The estimated duration is approximately 5.3 days. This is a planning estimate, not a delivery guarantee.
 
-Example: Data Engineering cannot start source integration because required firewall access has not been provided.
+Estimates should clarify whether they include development, code review, testing, integration, deployment, and defect fixing.
 
-A blocker can also be an issue, but the term emphasizes its impact on progress.
+**TPM responsibilities:**
 
-### Assumption
+- Identify activities that affect the final delivery date.
+- Track critical-path dependencies.
+- Identify activities that can run in parallel.
+- Understand assumptions behind technical estimates.
+- Track estimate changes and their impact on milestones.
+- Communicate uncertainty instead of treating early estimates as fixed commitments.
 
-Something considered true for planning purposes but not yet confirmed.
+## 5. Risk, Issue & Dependency Management
 
-Example: The TPM assumes that the source system can provide at least 100,000 records per hour.
+Technical projects contain uncertainties, existing problems, and dependencies that may affect delivery.
 
-If the assumption is incorrect, the project plan may need to change.
+### Risk, Issue, Blocker & Assumption
 
-### Comparison
-
-| Concept | Meaning | Example |
+| Term | Meaning | DMS Example |
 |---|---|---|
-| Risk | Potential future problem | Network approval may be delayed |
-| Issue | Existing problem | Network approval has failed |
-| Blocker | Prevents progress | Integration cannot start |
-| Assumption | Unverified planning condition | Source can handle required data volume |
+| Risk | A potential future problem | Kafka throughput may be insufficient |
+| Issue | A problem that has already occurred | NiFi flow fails on invalid documents |
+| Blocker | A problem preventing progress | Development cannot continue without Kafka ACLs |
+| Assumption | Something considered true but not yet confirmed | External SFTP will be available on the agreed date |
 
-## 9. Technical Estimation and Uncertainty
+A blocker is often a high-impact issue, but not every issue is a blocker.
 
-Technical estimation predicts the time, effort, or resources required to complete technical work.
+### RAID Log
 
-Estimates depend on factors such as:
+RAID stands for Risks, Assumptions, Issues, and Dependencies.
 
-- Technical complexity.
-- Team capacity.
-- Dependencies.
-- Availability of infrastructure.
-- Integration requirements.
-- Unknown technical constraints.
+It provides a centralized view of items that may affect project delivery.
 
-### Estimation Approaches
-
-**Expert Estimation:** Estimates are provided by engineers or technical leads based on experience.
-
-**Analogous Estimation:** Uses similar completed work as a reference.
-
-**Three-Point Estimation:** Uses three values:
-
-- Optimistic: Best-case duration.
-- Most Likely: Expected duration.
-- Pessimistic: Worst-case duration.
-
-A common PERT estimate is:
-
-`Expected Duration = (Optimistic + 4 × Most Likely + Pessimistic) / 6`
-
-### Example
-
-For ClickHouse Integration:
-
-- Optimistic: 3 days.
-- Most Likely: 5 days.
-- Pessimistic: 10 days.
-
-Expected duration:
-
-`(3 + 4 × 5 + 10) / 6 = 5.5 days`
-
-This estimate helps represent uncertainty rather than treating the five-day estimate as a guaranteed commitment.
-
-### TPM Considerations
-
-- Understand the assumptions behind estimates.
-- Separate effort from calendar duration.
-- Consider external dependencies and team availability.
-- Avoid presenting uncertain estimates as fixed commitments.
-- Track estimate changes and their causes.
-
-## 10. Change Management and Scope Control
-
-Change Management controls changes to project scope, requirements, architecture, and delivery commitments.
-
-Changes may originate from:
-
-- New business requirements.
-- Technical constraints.
-- Security requirements.
-- Infrastructure limitations.
-- Integration discoveries.
-- Performance or scalability needs.
-
-### Example
-
-During Data Platform integration, the team discovers that the existing PostgreSQL configuration cannot support the expected workload.
-
-The team proposes migrating part of the workload to a different database architecture.
-
-Before accepting the change, the TPM should assess:
-
-- Technical impact.
-- Additional implementation effort.
-- Infrastructure requirements.
-- Dependencies on other teams.
-- Testing requirements.
-- Delivery timeline impact.
-- Operational and maintenance costs.
-
-### Scope Control
-
-A change should be evaluated and approved before being incorporated into the delivery baseline.
-
-Important elements include:
-
-- Change description.
-- Business or technical justification.
-- Impact analysis.
-- Required approvals.
-- Updated scope and schedule.
-- Communication to affected teams.
-
-Uncontrolled scope changes can cause delays, increased costs, and unclear delivery expectations.
-
-## 11. Architecture Decision Records (ADR)
-
-An Architecture Decision Record documents an important technical decision and its context.
-
-ADRs help teams understand why an architectural choice was made and what alternatives were considered.
-
-### Typical ADR Structure
-
-1. **Title:** Short name of the decision.
-2. **Status:** Proposed, Accepted, Rejected, or Superseded.
-3. **Context:** Problem or requirement.
-4. **Decision:** Selected technical approach.
-5. **Alternatives:** Other options considered.
-6. **Consequences:** Benefits, limitations, and trade-offs.
-
-### Example: Kafka Message Partitioning
-
-**Context:**
-
-DMS needs to preserve the processing order of events belonging to the same document.
-
-**Options:**
-
-- Use `document_id` as the Kafka message key.
-- Distribute messages without a key.
-- Use a custom partitioning strategy.
-
-**Decision:**
-
-Use `document_id` as the message key.
-
-**Reason:**
-
-Events for the same document are assigned to the same partition, preserving their partition-level ordering.
-
-**Consequences:**
-
-- Ordering is maintained within each partition for a given document key.
-- Uneven key distribution may create partition hotspots.
-- Changing partition count can affect key-to-partition mapping.
-
-### TPM Role
-
-The TPM does not necessarily make every technical decision but should ensure that important decisions:
-
-- Have a clear owner.
-- Are documented.
-- Consider relevant alternatives.
-- Include technical consequences.
-- Are communicated to affected teams.
-
-## 12. Ownership and Responsibility Matrix (RACI)
-
-RACI defines team responsibilities for project activities.
-
-It helps prevent unclear ownership and delays caused by assuming another team is responsible.
-
-### RACI Definitions
-
-- **R - Responsible:** Performs the work.
-- **A - Accountable:** Ultimately owns the result and approves completion.
-- **C - Consulted:** Provides input or expertise.
-- **I - Informed:** Receives progress updates.
-
-Each activity should normally have one clearly identified Accountable owner.
-
-### Example RACI Matrix
-
-| Activity | Data Eng. | DevOps | Database | Network | Security | TPM |
-|---|---|---|---|---|---|---|
-| Source Integration | R | I | I | C | C | A |
-| Kubernetes Setup | C | R/A | I | C | C | I |
-| Database Provisioning | C | C | R/A | I | C | I |
-| Firewall Configuration | C | I | I | R/A | C | I |
-| Security Approval | C | C | C | C | R/A | I |
-| Project Coordination | C | C | C | C | C | R/A |
-
-The exact RACI assignment depends on organizational authority and team ownership.
-
-RACI should define responsibility for outcomes, not just list teams that participate.
-
-## 13. Release and Environment Dependencies
-
-Software delivery usually involves multiple environments:
-
-- Development
-- Testing
-- Staging
-- Production
-
-A release may depend on several conditions being satisfied.
-
-### Example Release Dependencies
-
-Before deploying Metadata API to Production:
-
-- Required database migrations are ready.
-- Production database is available.
-- Container image has been approved.
-- Kubernetes configuration is validated.
-- Secrets and certificates are available.
-- Network access is configured.
-- Monitoring and alerting are ready.
-- Rollback strategy is defined.
-
-### Release Sequencing
-
-The order of deployment matters.
-
-For example, when adding a new database field:
-
-1. Apply a backward-compatible database migration.
-2. Deploy the updated application.
-3. Validate application behavior.
-4. Enable the new functionality.
-5. Remove obsolete schema elements only after compatibility is confirmed.
-
-Poor release sequencing can cause application failures or data inconsistency.
-
-## 14. External Infrastructure and Service Dependencies
-
-Projects often rely on resources and services managed outside the immediate delivery team.
-
-Examples include:
-
-- Firewall and network approvals.
-- Third-party APIs.
-- DNS and certificate services.
-- Storage infrastructure.
-- Kubernetes Cluster availability.
-- Identity and Access Management.
-- External data sources.
-- Vendor-provided software or infrastructure.
-
-### External Dependency Register
-
-| Dependency | Responsible Team / Provider | Required By | Potential Impact |
+| Type | Description | Owner | Action |
 |---|---|---|---|
-| Source System Access | Source Team | NiFi Integration | Ingestion delay |
-| Firewall Rules | Network | Source Integration | Connectivity failure |
-| Storage Provisioning | Storage Team | Document Processing | Deployment blocker |
-| Database Access | Database Team | Application Integration | Application unavailable |
-| Security Approval | Security Team | Production Release | Release delay |
-| DNS and Certificates | Network / Security | Service Exposure | Connectivity or TLS failure |
+| Risk | Kafka throughput may be insufficient | Platform | Perform load testing |
+| Assumption | External SFTP endpoint will be available | Integration Owner | Confirm connectivity |
+| Issue | NiFi flow fails on invalid documents | Data Engineering | Investigate validation logic |
+| Dependency | Document Processor requires Kafka ACLs | Platform | Configure access |
 
-### TPM Responsibilities
+Recommended tracking fields:
 
-- Confirm external ownership.
-- Track required delivery dates.
-- Validate readiness before dependent work starts.
-- Identify alternative approaches where possible.
-- Escalate delayed dependencies.
+- ID and type.
+- Description and impact.
+- Probability (for risks).
+- Owner and target date.
+- Status.
+- Mitigation or resolution plan.
 
-## 15. Impact Analysis for Schema, API, and Architecture Changes
+### Risk Mitigation & Recovery Planning
 
-Technical changes can affect multiple teams and systems.
+Common risk response strategies:
 
-Before accepting a change, its impact must be understood.
+- **Avoid:** Change the plan to eliminate the risk.
+- **Mitigate:** Reduce its probability or impact.
+- **Transfer:** Transfer some responsibility to another party.
+- **Accept:** Acknowledge the risk and monitor it.
 
-### Schema Changes
+Example: Kafka throughput may be insufficient for the expected document volume. A mitigation plan could include load testing, capacity planning, and monitoring before production release.
 
-Example: Adding a mandatory field to a PostgreSQL table.
+Recovery planning defines how teams respond when a failure occurs.
+
+A recovery plan should identify:
+
+- Detection method.
+- Responsible owner.
+- Immediate response.
+- Recovery procedure.
+- Data consistency checks.
+- Communication and escalation path.
+- Criteria for returning to normal operation.
+
+**DMS example:**
+
+A document is successfully uploaded to MinIO, but metadata persistence fails in PostgreSQL.
+
+Potential consequences:
+
+- An object exists without a metadata record.
+- The document cannot be found through normal application queries.
+- Storage and database state become inconsistent.
+
+Possible recovery measures include retrying metadata persistence, tracking processing status, reconciling stored objects with metadata records, and identifying orphaned objects.
+
+**TPM responsibilities:**
+
+- Track risks before they become issues.
+- Ensure every issue or blocker has an owner and resolution plan.
+- Monitor dependencies and target dates.
+- Coordinate mitigation and recovery planning.
+- Escalate risks that threaten major milestones.
+
+## 6. Change & Technical Decision Management
+
+Changes to requirements, architecture, or project scope should be evaluated before implementation.
+
+### Change Management & Scope Control
+
+Example:
+
+During DMS development, a new requirement is introduced to support an additional document format.
+
+This may affect:
+
+- NiFi validation rules.
+- Document Processor implementation.
+- Metadata schema.
+- Storage requirements.
+- Integration testing.
+- Delivery timeline.
+
+A typical change management process:
+
+```text
+Change Request
+      |
+      v
+Requirement Clarification
+      |
+      v
+Technical Impact Analysis
+      |
+      v
+Effort and Timeline Estimation
+      |
+      v
+Scope / Cost / Risk Evaluation
+      |
+      v
+Approval or Rejection
+      |
+      v
+Plan and Schedule Update
+      |
+      v
+Implementation and Validation
+```
+
+A change request should include:
+
+- Description and reason for the change.
+- Expected benefit.
+- Affected components and teams.
+- Technical dependencies.
+- Estimated effort and duration.
+- Impact on scope, cost, timeline, and risks.
+- Alternatives and approval status.
+
+**Scope creep** occurs when additional requirements are introduced gradually without proper evaluation or approval.
+
+The TPM should make changes visible, coordinate impact assessments, obtain appropriate approval, and update the delivery plan.
+
+### Architecture Decision Record (ADR)
+
+An ADR documents an important technical decision, its context, alternatives, and consequences.
+
+Examples:
+
+- Choosing Kafka instead of RabbitMQ.
+- Selecting MinIO as object storage.
+- Choosing PostgreSQL for metadata.
+- Deciding between synchronous and asynchronous processing.
+
+Typical ADR structure:
+
+```markdown
+# ADR-001: Use Kafka for Document Processing Events
+
+## Status
+Accepted
+
+## Context
+The DMS platform requires asynchronous communication
+between document ingestion and document processing.
+
+## Decision
+Kafka will be used as the messaging platform.
+
+## Alternatives
+- RabbitMQ
+- Direct synchronous API calls
+
+## Consequences
+
+Positive:
+- Supports asynchronous processing.
+- Provides message retention and replay.
+- Supports consumer groups.
+
+Negative:
+- Requires broker infrastructure and monitoring.
+- Introduces operational complexity.
+- Requires careful partition and consumer management.
+
+## Owners
+Development, Data Engineering, Platform
+```
+
+ADRs help preserve decision history, explain technical trade-offs, clarify ownership, and support future architecture changes.
+
+**TPM responsibilities:**
+
+- Ensure significant technical decisions are documented.
+- Coordinate reviews with relevant technical stakeholders.
+- Make alternatives and consequences visible.
+- Track required approvals.
+- Ensure decisions are communicated to affected teams.
+
+The technical decision itself should be owned by the appropriate technical stakeholders.
+
+## 7. Technical Impact Analysis
+
+A technical change can affect multiple components, teams, and delivery activities. Impact analysis helps identify these consequences before implementation.
+
+### Database Schema Changes
+
+Example: A new `document_category` field is added to the DMS metadata table.
 
 Potential impacts:
 
-- Existing applications may fail if they do not provide the field.
-- Data ingestion pipelines may require updates.
-- Downstream analytical models may need changes.
-- Historical records may require backfilling.
+- Database schema migration.
+- Metadata API changes.
+- Document Processor changes.
+- Existing records and default values.
+- BI queries and reporting.
+- Data validation and integration tests.
 
 ### API Changes
 
-Example: Changing the Metadata API response structure.
+Example: The Metadata API changes a response field from `document_id` to `id`.
 
 Potential impacts:
 
-- Consumer applications may break.
-- Integration tests need updates.
-- API documentation must be revised.
-- Version compatibility must be considered.
+- Document Processor integration.
+- External API consumers.
+- API documentation.
+- Automated tests.
+- Backward compatibility.
+- Deployment sequence.
 
 ### Architecture Changes
 
-Example: Replacing an existing message broker or changing the data ingestion architecture.
+Example: The project changes from synchronous document processing to asynchronous processing through Kafka.
 
 Potential impacts:
 
-- Infrastructure requirements.
-- Network and security configuration.
-- Application integration.
-- Data migration.
-- Operational monitoring.
-- Team responsibilities and support processes.
+- Kafka infrastructure.
+- Producer and consumer implementation.
+- Retry and error handling.
+- Message ordering.
+- Monitoring and alerting.
+- Processing latency.
+- Operational complexity.
 
-### Impact Analysis Checklist
+### Impact Analysis Matrix
 
-Before approving a change, identify:
+| Area | Questions |
+|---|---|
+| Application | Which services require changes? |
+| Database | Are schema or migration changes required? |
+| Data Pipeline | Are ingestion or transformation flows affected? |
+| Infrastructure | Are additional resources or configurations needed? |
+| Integration | Which upstream and downstream systems are affected? |
+| Security | Are permissions or security controls changing? |
+| Testing | Which test scenarios must be repeated? |
+| Delivery | What is the impact on milestones and release dates? |
+| Cost | Are additional infrastructure or operational costs expected? |
 
-- Affected components.
-- Dependent systems and teams.
-- Backward compatibility.
-- Required migrations.
-- Testing requirements.
-- Deployment sequencing.
-- Rollback and recovery options.
-- Delivery timeline impact.
+### TPM Responsibilities
 
-## 16. Risk Mitigation and Recovery Planning
+The TPM coordinates the assessment and ensures that relevant teams provide their technical input.
 
-Risk Mitigation defines actions that reduce the probability or impact of potential problems.
+The assessment should clarify:
 
-Recovery Planning defines how service or project delivery can be restored when a problem occurs.
+- Why the change is needed.
+- Which components and teams are affected.
+- What additional work and dependencies are introduced.
+- What alternatives exist.
+- What happens if the change is not implemented.
+- How the change affects scope, cost, risk, and delivery.
 
-### Risk Register
+The result should provide enough information for stakeholders to make an informed decision.
 
-A Risk Register tracks identified risks and their management plans.
+## 8. Infrastructure, Integration & Release Coordination
 
-| Risk | Probability | Impact | Mitigation |
-|---|---|---|---|
-| Infrastructure not ready | Medium | High | Validate readiness before integration |
-| Poor source data quality | High | High | Add validation and data profiling |
-| Insufficient processing capacity | Medium | High | Load testing and resource planning |
-| Integration incompatibility | Medium | High | Contract and integration testing |
-| Delayed security approval | Medium | Medium | Start security review early |
-| Failed Production Release | Low | High | Rollback plan and release validation |
+A software release requires more than completed application code. Infrastructure, environment configuration, database changes, access, and deployment processes must also be ready.
 
-### Risk Mitigation vs. Recovery
+### Environments
 
-**Mitigation:**
+| Environment | Purpose |
+|---|---|
+| Development | Initial development and component testing |
+| Testing / QA | Functional and integration testing |
+| Staging / Pre-Production | Production-like validation |
+| Production | Live service environment |
 
-Reduces the probability or impact of a risk before it becomes a problem.
+Not every organization uses all these environments.
 
-Example: Perform load testing before Production deployment.
+### External Infrastructure and Service Dependencies
 
-**Recovery:**
+Projects often depend on infrastructure and services owned by other teams or external organizations.
 
-Restores the system or delivery after a failure has occurred.
+Common examples:
 
-Example: Roll back to the previous application version after a failed release.
+| Dependency | Requirement |
+|---|---|
+| Network | Connectivity between DMS and external SFTP |
+| Firewall | Required source and destination ports |
+| DNS | Internal service name resolution |
+| Storage | MinIO capacity |
+| Kubernetes | Cluster resources |
+| Kafka | Topics and ACLs |
+| Database | PostgreSQL provisioning and access |
+| Security | Certificates and credentials |
+| External Vendor | API or SFTP availability |
 
-### Recovery Planning
+**Example:**
 
-A recovery plan should define:
+The DMS project needs to receive documents from an external system through SFTP.
 
-- Recovery owner.
-- Recovery steps.
-- Required dependencies.
-- Rollback or failover procedure.
-- Data recovery requirements.
-- Communication and escalation process.
-- Validation criteria after recovery.
+The integration cannot be tested until the endpoint is available, network routes and firewall rules are configured, credentials are exchanged, and connectivity is verified.
 
-## 17. Technical Status Reporting and Escalation
+These activities should be tracked as project dependencies with owners and expected dates.
 
-Technical status reporting communicates project progress, delivery risks, blockers, and decisions required from stakeholders.
+### Release Dependencies
 
-A useful status report should distinguish between completed work, current issues, potential risks, and upcoming actions.
+Before deploying the Document Processor, the following may be required:
 
-### Example Technical Status Report
+- Container image available in the registry.
+- Kubernetes deployment configuration prepared.
+- Kafka connectivity and ACLs configured.
+- PostgreSQL schema changes applied.
+- MinIO access configured.
+- Secrets and environment variables available.
+- Monitoring and alerting configured.
+- Rollback procedure defined.
 
-**Project:** Data Platform Delivery
+### Database and Application Compatibility
 
-**Overall Status:** At Risk
+Application releases can fail when database changes are not compatible with the deployed application version.
 
-**Completed:**
-- Kubernetes Cluster provisioned.
-- PostgreSQL deployed.
-- Initial NiFi configuration completed.
+For example, removing a database column while the previous application version still depends on it may cause production failures.
 
-**In Progress:**
-- Kafka integration.
-- Document Processor integration testing.
-- Monitoring dashboard configuration.
+One safer approach for some schema changes is the Expand-and-Contract pattern:
 
-**Blockers:**
-- Production firewall access has not been approved.
-- Source integration testing cannot be completed.
+1. Add the new schema structure while keeping the old one.
+2. Deploy application code that supports the transition.
+3. Migrate or backfill data if required.
+4. Verify that the new structure is being used.
+5. Remove the old structure in a later release.
 
-**Risks:**
-- Delayed network approval may affect the End-to-End Testing milestone.
-- Current processing capacity has not yet been validated under expected workload.
+### TPM Responsibilities
 
-**Decisions Needed:**
-- Confirm the Production firewall approval date.
-- Confirm whether additional processing capacity will be provisioned.
+- Identify external and infrastructure dependencies early.
+- Confirm owners, lead times, and required approvals.
+- Track environment and configuration readiness.
+- Coordinate application and database releases.
+- Ensure deployment and rollback plans exist.
+- Verify testing and acceptance criteria.
+- Coordinate release windows across teams.
 
-**Next Actions:**
-- Network team to complete firewall configuration.
-- Data Engineering to continue Kafka integration in parallel.
-- DevOps to validate monitoring and resource configuration.
-- TPM to reassess the delivery timeline after dependency confirmation.
+**Key point:** A successful CI pipeline does not guarantee a successful production release. The deployed system must also be healthy, compatible, and operational.
+
+## 9. Technical Status Reporting & Escalation
+
+Technical status reporting communicates actual delivery conditions, not just the number of completed tasks.
+
+A useful report explains progress, blockers, risks, dependencies, and their impact on the project.
+
+### Status Report Structure
+
+**1. Overall Status**
+
+- Green: Progress is on track.
+- Amber: Risks or delays require attention.
+- Red: A significant issue threatens delivery or a major milestone.
+
+Status definitions should be agreed upon within the organization.
+
+**2. Progress:** Completed and ongoing work.
+
+**3. Blockers and Issues:** What is preventing progress and who owns the resolution.
+
+**4. Risks:** Potential problems that may affect future delivery.
+
+**5. Dependencies:** Pending activities from other teams or external parties.
+
+**6. Decisions Required:** Decisions that need technical or management approval.
+
+**7. Next Steps:** Important upcoming activities.
+
+### Example: DMS Weekly Status Report
+
+```text
+Project: DMS
+
+Overall Status: Amber
+
+Progress:
+- PostgreSQL schema design completed.
+- Metadata API development is ongoing.
+- NiFi ingestion flow is partially implemented.
+
+Blockers:
+- Kafka ACL configuration is still pending.
+- Development cannot complete consumer integration
+  until the required access is provided.
+
+Risks:
+- Delayed Kafka availability may affect integration testing.
+
+Dependencies:
+- Platform team: Kafka topic and ACL configuration.
+- Network team: External SFTP connectivity.
+
+Decisions Required:
+- Confirmation of the initial production storage capacity.
+
+Next Steps:
+- Complete Kafka integration.
+- Validate SFTP connectivity.
+- Start end-to-end testing after infrastructure readiness.
+```
 
 ### Escalation
 
-Escalation is required when:
+Escalation means involving a higher level of authority or another responsible stakeholder when an issue cannot be resolved through normal coordination.
 
-- A blocker cannot be resolved at the working-team level.
-- A critical milestone is at risk.
-- A dependency has no confirmed owner or delivery date.
-- A major technical decision requires management approval.
-- Delivery commitments are likely to be affected.
+Escalation is appropriate when:
 
-A good escalation should clearly describe the problem, impact, responsible owner, required decision, and latest date by which action is needed.
+- A critical dependency is repeatedly delayed.
+- Teams cannot agree on ownership.
+- A technical decision blocks multiple teams.
+- Scope, budget, or timeline changes require approval.
+- A production risk requires management attention.
 
+A good escalation should include:
+
+- What happened?
+- What is the impact?
+- Which milestone or deliverable is affected?
+- What actions have already been taken?
+- What decision or support is required?
+- By when is the decision needed?
+
+**TPM responsibility:** Communicate project health accurately, highlight delivery risks early, and escalate issues with clear evidence and a specific request for support.
+
+## 10. Hands-on & Deliverables
+
+### Hands-on Scenario: DMS Integration Delay
+
+The DMS project is approaching its integration testing milestone.
+
+The following situation has occurred:
+
+- The Database team has completed the metadata schema.
+- Development has completed most of the Document Processor implementation.
+- Data Engineering has completed the NiFi ingestion flow.
+- The Platform team has not configured Kafka ACLs.
+- The Network team has not completed external SFTP connectivity.
+- A new requirement has been introduced to support an additional document format.
+
+These conditions may affect integration testing and the production delivery date.
+
+### Tasks
+
+**1. Dependency Analysis**
+
+Identify the dependencies preventing integration testing. For each dependency, identify the responsible team and expected output.
+
+**2. Impact Analysis**
+
+Evaluate the new document format requirement. Consider application, data pipeline, database, testing, scope, and timeline impacts.
+
+**3. Risk and Issue Management**
+
+Classify the following:
+
+- Kafka ACL configuration is pending.
+- External SFTP connectivity is unavailable.
+- The new document format may increase processing time.
+
+Determine which are risks, issues, blockers, or assumptions where applicable.
+
+**4. Delivery Planning**
+
+Identify which activities can continue in parallel and which activities are on the critical path.
+
+**5. Coordination and Escalation**
+
+Prepare a short status report explaining:
+
+- Current project status.
+- Main blockers.
+- Delivery risks.
+- Affected milestones.
+- Required decisions or support.
+
+The objective is to demonstrate how a TPM maintains end-to-end delivery visibility and coordinates teams without taking ownership of their technical implementation.
+
+### Expected Deliverables
+
+| Deliverable | Purpose |
+|---|---|
+| Dependency Map | Shows technical, team, and infrastructure dependencies |
+| WBS | Breaks the project into manageable work packages |
+| Milestone Plan | Defines major delivery stages and completion conditions |
+| Acceptance Criteria | Defines how deliverables are evaluated |
+| Critical Path View | Identifies activities that determine project duration |
+| RAID Log | Tracks risks, assumptions, issues, and dependencies |
+| Estimation Summary | Documents effort, duration, assumptions, and uncertainty |
+| Change Request | Records and evaluates scope or technical changes |
+| ADR | Documents important architecture decisions |
+| RACI Matrix | Clarifies ownership and responsibilities |
+| Release Readiness Plan | Tracks environment, deployment, and operational readiness |
+| Impact Analysis | Evaluates the consequences of technical changes |
+| Risk Mitigation Plan | Defines preventive and recovery actions |
+| Technical Status Report | Communicates progress, blockers, risks, and decisions |
+
+### Final Outcome
+
+After completing this topic, a TPM should be able to:
+
+- Coordinate technical delivery across multiple teams.
+- Break down complex projects into manageable activities.
+- Understand and track technical dependencies.
+- Manage milestones, estimates, and critical-path activities.
+- Identify and manage risks, issues, and blockers.
+- Evaluate scope changes and technical decisions.
+- Coordinate infrastructure, integration, and production releases.
+- Communicate project health and escalate delivery risks.
+- Maintain an end-to-end view of technical delivery.
+
+The main goal is to ensure that individual team outputs become one integrated, reliable, and operational solution.
