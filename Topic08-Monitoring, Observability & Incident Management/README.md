@@ -115,21 +115,16 @@ A Trace represents the complete request journey, while a Span represents an indi
 Example:
 
 ```text
-Client Request
-      |
-      v
-Metadata API
-      |
-      v
-PostgreSQL Query
-      |
-      v
-Response
+Trace ID: tr-10025
+
+Metadata API       300 ms
+       |
+PostgreSQL Query  2100 ms
+       |
+Response          400 ms
+
+Total             2800 ms
 ```
-
-Suppose the request takes 2.8 seconds, of which 2.1 seconds are spent querying PostgreSQL.
-
-Tracing helps identify the database as the main source of latency.
 
 - **Trace ID:** Identifies the complete request.
 - **Span ID:** Identifies an individual operation.
@@ -287,6 +282,9 @@ Applications / Infrastructure
              Notifications
 ```
 
+<img width="1000" height="700" alt="image" src="https://github.com/user-attachments/assets/2fff9c16-ddad-4a8b-963c-46681ebfd936" />
+
+
 ## 8. Centralized Logging and Log Search
 
 Centralized Logging collects logs from different applications and infrastructure components into a common platform.
@@ -318,6 +316,19 @@ Application / Container Logs
 | Kibana | Searches Elasticsearch logs |
 | Grafana | Visualizes logs from supported sources |
 
+```text
+  Node 1            Node 2            Node N
+ ┌─────────┐      ┌─────────┐      ┌─────────┐
+ │  Pods   │      │  Pods   │      │  Pods   │
+ │    ↓    │      │    ↓    │      │   ↓     │
+ │FluentBit│      │FluentBit│      │FluentBit│ 
+ └───┬─────┘      └───┬─────┘      └───┬─────┘
+     └────────────────┼────────────────┘
+                      ▼
+               Elasticsearch  ──▶  Kibana
+```
+
+
 ### Practical Example
 
 Document Processor fails while processing `doc-123`.
@@ -330,7 +341,14 @@ The technical team searches logs using:
 - Error level.
 - Trace ID.
 
+```text
+10:30:15 INFO  Document processing started
+10:30:17 INFO  Requesting file from MinIO
+10:30:22 ERROR MinIO request timeout
+10:30:22 WARN  Retry attempt 1
+10:30:32 ERROR MinIO request timeout
 The logs reveal repeated MinIO request timeouts.
+```
 
 This helps the team investigate MinIO availability, network latency, and retry configuration.
 
