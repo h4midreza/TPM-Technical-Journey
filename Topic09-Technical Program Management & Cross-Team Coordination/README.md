@@ -294,9 +294,9 @@ Common estimation methods:
 
 A common weighted estimate is:
 
-\[
-E = \frac{O + 4M + P}{6}
-\]
+
+E = (O + 4M + P) / 6
+
 
 Example: Kafka integration
 
@@ -304,9 +304,7 @@ Example: Kafka integration
 - Most likely: 5 days
 - Pessimistic: 9 days
 
-\[
-E = \frac{3 + 4(5) + 9}{6} = 5.33
-\]
+E = (3 + (4 * 5) + 9) / 6 = 5.33
 
 The estimated duration is approximately 5.3 days. This is a planning estimate, not a delivery guarantee.
 
