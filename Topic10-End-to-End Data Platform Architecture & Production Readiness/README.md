@@ -203,7 +203,7 @@ For example:
 
 ### Kickoff Output
 
-The outcome is a validated requirements baseline containing agreed scope, measurable acceptance criteria, assumptions, constraints, owners, and unresolved decisions.
+The outcome is a validated requirements baseline containing agreed scope, acceptance criteria,Functional & Non-Functional Requirements, assumptions, constraints, owners and open decisions.
 
 These requirements become the basis for architecture and capacity planning.
 
@@ -252,7 +252,7 @@ The reviewed architecture includes PostgreSQL and a CDC path for lifecycle event
           (Object Storage)        (Operational DB)
                  |                     |
                  v                 Outbox Table
-                NiFi                    |
+                NiFi                   |
        Discovery / Validation          v
                  |                  Debezium
                  |                     |
@@ -266,9 +266,9 @@ The reviewed architecture includes PostgreSQL and a CDC path for lifecycle event
                       BI / Reporting
 
 
-                   Prometheus
-                        |
-                     Grafana
+                       Prometheus
+                           |
+                        Grafana
 ```
 
 The two ingestion paths have different responsibilities:
